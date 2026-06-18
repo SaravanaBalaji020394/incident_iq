@@ -4,7 +4,7 @@ from langchain_community.vectorstores import Chroma
 from langchain_community.embeddings import HuggingFaceEmbeddings
 
 def seed_vector_db():
-    print("🔄 Initializing embedding model (all-MiniLM-L6-v2)...")
+    print("Initializing embedding model (all-MiniLM-L6-v2)...")
     embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
     
     # Establish dynamic paths relative to file location
@@ -14,9 +14,9 @@ def seed_vector_db():
     
     # Ensure raw data source file exists cleanly
     if not os.path.exists(json_path):
-        raise FileNotFoundError(f"❌ Target data file missing at: {json_path}")
+        raise FileNotFoundError(f"Target data file missing at: {json_path}")
         
-    print(f"📖 Parsing raw JSON incident data source from: {json_path}")
+    print(f"Parsing raw JSON incident data source from: {json_path}")
     with open(json_path, "r") as f:
         incidents = json.load(f)
         
@@ -37,7 +37,7 @@ def seed_vector_db():
             "target_severity": inc["severity"]
         })
         
-    print(f"📦 Injecting {len(texts)} highly structured incident profiles into ChromaDB...")
+    print(f"Injecting {len(texts)} highly structured incident profiles into ChromaDB...")
     
     # Build and persist the vector index
     vector_db = Chroma.from_texts(
@@ -46,7 +46,7 @@ def seed_vector_db():
         metadatas=metadatas,
         persist_directory=persist_directory
     )
-    print("✅ Real JSON-sourced ChromaDB RAG Corpus successfully deployed!")
+    print("Real JSON-sourced ChromaDB RAG Corpus successfully deployed!")
 
 if __name__ == "__main__":
     seed_vector_db()
