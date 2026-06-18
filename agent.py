@@ -11,9 +11,6 @@ from src.schemas import AgenticState, TriageResult, ActionTaken
 
 load_dotenv()
 
-# =====================================================================
-# 1. CORE AGENT COMPONENT INITIALIZATIONS
-# =====================================================================
 llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.0)
 
 embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
@@ -26,14 +23,10 @@ def get_state_val(state, key):
         return state.get(key)
     return getattr(state, key, None)
 
-# =====================================================================
-# 2. DEFINE SYSTEM AGENT NODES
-# =====================================================================
-
 def triage_node(state: AgenticState) -> dict:
     """Triage Agent: Extracts entities and determines event severity."""
     payload = get_state_val(state, "payload")
-    print(f"🕵️ [Triage Agent] Classifying incident: {payload.incident_id}")
+    print(f" [Triage Agent] Classifying incident: {payload.incident_id}")
     
     structured_llm = llm.with_structured_output(TriageResult)
     
@@ -54,7 +47,7 @@ def triage_node(state: AgenticState) -> dict:
 
 def knowledge_node(state: AgenticState) -> dict:
     """Knowledge Agent: Executes semantic RAG lookup over the seeded corpus."""
-    print(f"📖 [Knowledge Agent] Querying RAG corpus for context...")
+    print(f"[Knowledge Agent] Querying RAG corpus for context...")
     payload = get_state_val(state, "payload")
     
     query = f"{payload.service_name} {payload.error_message}"
@@ -70,10 +63,10 @@ def remediation_node(state: AgenticState) -> dict:
     severity = triage.severity if triage else "P4"
     
     if severity not in ["P1", "P2"]:
-        print(f"🛑 [Remediation Guard] Bypassing tool execution for low severity: {severity}")
+        print(f"[Remediation Guard] Bypassing tool execution for low severity: {severity}")
         return {"actions_executed": []}
         
-    print(f"⚡ [Remediation Agent] High Severity ({severity}) confirmed. Triggering DevOps engine...")
+    print(f"[Remediation Agent] High Severity ({severity}) confirmed. Triggering DevOps engine...")
     runbook = get_state_val(state, "retrieved_runbook") or ""
     
     tool_log = ActionTaken(
@@ -87,12 +80,12 @@ def remediation_node(state: AgenticState) -> dict:
 
 def notifier_node(state: AgenticState) -> dict:
     """Notifier Agent: Compiles crisp corporate Markdown summary."""
-    print(f"📢 [Notifier Agent] Compiling final summary notification block...")
+    print(f"[Notifier Agent] Compiling final summary notification block...")
     payload = get_state_val(state, "payload")
     triage = get_state_val(state, "triage")
     actions = get_state_val(state, "actions_executed") or []
     
-    action_text = f"✅ Automated action taken: {actions[0].output}" if actions else "⚠️ No automated tooling required (Bypassed due to low severity routing specifications)."
+    action_text = f" Automated action taken: {actions[0].output}" if actions else " No automated tooling required (Bypassed due to low severity routing specifications)."
     
     summary_prompt = (
         "You are an SRE Notifier Agent. Review the technical context and compile a concise, "
@@ -113,9 +106,7 @@ def notifier_node(state: AgenticState) -> dict:
     
     return {"final_summary": response.content}
 
-# =====================================================================
-# 3. DYNAMIC ROUTING GOVERNOR
-# =====================================================================
+
 
 def routing_governor(state: AgenticState) -> Literal["execute_tools", "skip_tools"]:
     """
@@ -125,15 +116,12 @@ def routing_governor(state: AgenticState) -> Literal["execute_tools", "skip_tool
     severity = triage.severity if triage else "P4"
     
     if severity in ["P1", "P2"]:
-        print(f"🔀 [Orchestrator] High Severity ({severity}) flagged. Routing to Remediation Agent.")
+        print(f"[Orchestrator] High Severity ({severity}) flagged. Routing to Remediation Agent.")
         return "execute_tools"
     else:
-        print(f"🔀 [Orchestrator] Low Severity ({severity}) flagged. Direct-routing to Notifier.")
+        print(f"[Orchestrator] Low Severity ({severity}) flagged. Direct-routing to Notifier.")
         return "skip_tools"
 
-# =====================================================================
-# 4. WIRE THE LANGGRAPH STATE MACHINE
-# =====================================================================
 
 workflow = StateGraph(AgenticState)
 
