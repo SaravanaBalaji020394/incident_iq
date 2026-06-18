@@ -9,7 +9,7 @@ app = FastAPI(
     description="Agentic incident triaging and runbook remediation system using LangGraph and ChromaDB"
 )
 
-# --- ENDPOINT 1: HEALTH CHECK ---
+# HEALTH CHECK 
 @app.get("/health", tags=["Monitoring"])
 async def health_check():
     """
@@ -17,7 +17,7 @@ async def health_check():
     """
     return {"status": "healthy", "service": "incident_iq"}
 
-# --- ENDPOINT 2: INCIDENT PROCESSING PIPELINE ---
+# INCIDENT PROCESSING PIPELINE 
 @app.post("/process", tags=["Core Pipeline"])
 async def process_incident(payload: IncidentPayload):
     """
@@ -26,7 +26,7 @@ async def process_incident(payload: IncidentPayload):
     simulates corrective action, and returns an end-to-end journey ledger.
     """
     try:
-        print(f"\n🚀 [FastAPI] Processing incident event: {payload.incident_id} for service: {payload.service_name}")
+        print(f"\n [FastAPI] Processing incident event: {payload.incident_id} for service: {payload.service_name}")
         
         # FIX: Define the initial state as a native dictionary so LangGraph can subscript it []
         initial_state = {
